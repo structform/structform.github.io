@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StructForm: Synthetic Structural Supervision for Multilingual Handwritten Form Digitization</title>
+<meta name="description" content="StructForm (ICVGIP 2026): multilingual handwritten form digitization for English, Bengali and Hindi using synthetic structural supervision and language-specific LoRA adapters.">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+/* ---- Edit these links when resources go live. Empty string = "coming soon" popup. ---- */
+window.SF_LINKS = {
+  paper: "",   // e.g. ACM DL / arXiv link
+  code: "",    // e.g. "https://github.com/<org>/StructForm"
+  supp: "",    // Google Drive link to the supplementary
+  models: "",  // Hugging Face collection
+  dataset: ""  // RMHF2026 / SMHF2026 download page
+};
+</script>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a class="brand" href="#top">StructForm</a>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <div class="links" id="links">
+    <a href="#overview">Overview</a>
+    <a href="#method">Method</a>
+    <a href="#data">Data</a>
+    <a href="#results">Results</a>
+    <a href="#qualitative">Qualitative</a>
+    <a href="#resources">Resources</a>
+    <a href="#cite">Citation</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="badge">ICVGIP 2026 &middot; Accepted</span>
+    <h1>StructForm</h1>
+    <p class="subtitle">Synthetic Structural Supervision for Multilingual Handwritten Form Digitization</p>
+    <p class="authors">
+      <span>Shaon Bhattacharyya</span><sup>&nbsp;</sup>,
+      <span>Ajoy Mondal</span>,
+      <span>C. V. Jawahar</span>
+    </p>
+    <p class="affil">CVIT, International Institute of Information Technology, Hyderabad, India</p>
+    <p class="venue">17th Indian Conference on Computer Vision, Graphics and Image Processing (ICVGIP 2026)<br>December 21&ndash;24, 2026 &middot; IIT Kharagpur Research Park, Kolkata</p>
+
+    <div class="buttons">
+      <a class="btn" data-link="paper" href="#"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3.5V8h4.5M9 13h8M9 17h8"/></svg>Paper</a>
+      <a class="btn" data-link="supp" href="#"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Supplementary</a>
+      <a class="btn" data-link="code" href="#"><svg viewBox="0 0 24 24"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/></svg>Code</a>
+      <a class="btn" data-link="models" href="#"><span class="hf">&#129303;</span>Models</a>
+      <a class="btn" data-link="dataset" href="#"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Dataset</a>
+      <a class="btn disabled" data-soon="Live demo" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg>Live Demo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section id="overview" class="wrap">
+  <h2>Overview</h2>
+  <div class="two">
+    <div>
+      <p class="lead">Handwritten form digitization needs two things at once: reading the text, and associating each handwritten value with the correct printed key. Detailed spatial annotation of real forms to teach this association is expensive, especially across scripts.</p>
+      <p><strong>StructForm</strong> learns key&ndash;value relationships from <em>synthetically generated</em> forms whose key and value bounding boxes come for free, and uses them as auxiliary <em>semantic key&ndash;value anchor</em> supervision. A pretrained document vision-language model (Dolphin-v2) is then adapted with language-specific LoRA adapters on real forms that need only key&ndash;value annotations. At inference, StructForm reads the <em>complete form image</em> and directly generates key&ndash;value JSON, with no bounding-box prediction or field cropping.</p>
+    </div>
+    <figure class="card fig">
+      <img src="assets/fig/fig1_motivation.png" alt="Motivation: key-value misassociation and value boundary truncation in standard OCR/VLM versus StructForm">
+      <figcaption><b>Why it matters.</b> Standard OCR/VLM pipelines can attach a value to the wrong key or truncate a value that overflows its field. StructForm keeps the full form in view and learns key&ndash;value correspondence.</figcaption>
+    </figure>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>11,500</b><span>real forms in RMHF2026</span></div>
+    <div class="stat"><b>~3M</b><span>synthetic forms in SMHF2026</span></div>
+    <div class="stat"><b>3</b><span>languages: English, Bengali, Hindi</span></div>
+    <div class="stat"><b>0.921 / 0.948</b><span>Pair F1 on Bengali / Hindi</span></div>
+  </div>
+
+  <h3>Key contributions</h3>
+  <ul class="contrib">
+    <li><b>StructForm framework.</b> Multilingual handwritten form digitization combining synthetic structural supervision with language-specific adaptation to real forms.</li>
+    <li><b>Synthetic form pipeline.</b> Diverse layouts with structured key&ndash;value annotations and automatic key/value bounding boxes, with no manual spatial labeling.</li>
+    <li><b>RMHF2026.</b> A real handwritten form dataset: 11,500 forms, 100 templates, 500 participants, across English, Bengali and Hindi.</li>
+    <li><b>Semantic key&ndash;value anchor supervision.</b> Synthetic bounding boxes guide the correspondence between printed labels and their handwritten value regions.</li>
+    <li><b>Evidence.</b> Ablations and real-form evaluation show synthetic supervision and real-data adaptation are complementary; inference emits JSON directly.</li>
+  </ul>
+</section>
+
+<section id="method" class="wrap">
+  <h2>Method</h2>
+  <figure class="card fig wide">
+    <img src="assets/fig/fig2_framework.png" alt="StructForm framework: synthetic fine-tuning, real data adaptation, inference">
+    <figcaption>Synthetic forms provide key&ndash;value and anchor supervision for initial LoRA fine-tuning; the adapter is then adapted on real forms using only key&ndash;value annotations. At inference the model maps a full form image to JSON.</figcaption>
+  </figure>
+  <div class="three">
+    <div class="card"><h4>1 &middot; Synthetic fine-tuning</h4><p>Dolphin-v2 backbone with the visual encoder, multimodal bridge and original decoder frozen; only decoder LoRA is trained. Objective: <code>L_syn = L_kv + &lambda;<sub>a</sub> L_anchor</code>.</p></div>
+    <div class="card"><h4>2 &middot; Real-data adaptation</h4><p>The synthetic-adapted LoRA continues training on real forms with key&ndash;value labels only (<code>L_real = L_kv</code>). One adapter each for English, Bengali and Hindi.</p></div>
+    <div class="card"><h4>3 &middot; Direct inference</h4><p>The language adapter is loaded on the Dolphin-v2 backbone and the full form image is converted straight to ordered key&ndash;value JSON. Anchors are not needed at test time.</p></div>
+  </div>
+  <p class="note">Anchors are bounding boxes written as tokens in the target sequence and generated by the same decoder, so no detection head or architectural change is needed. Training setup: LoRA rank 16, &alpha;=32, dropout 0.05, learning rate 2&times;10<sup>-5</sup> (cosine), BF16 on two 48 GB GPUs, 3 epochs.</p>
+</section>
+
+<section id="data" class="wrap">
+  <h2>Data</h2>
+  <h3>SMHF2026: synthetic forms</h3>
+  <p>About one million forms per language (nearly three million total). Form families (bank, school/university, hospital, KYC/registration, insurance, tax, railway) define field schemas and layouts (lines, boxes, tables, checkboxes, signatures). Field values are generated in the target language with the Gemini API, rendered with printed and handwriting fonts, and degraded with mobile-capture effects. Key/value boxes are recorded automatically.</p>
+  <figure class="card fig wide"><img src="assets/fig/fig3_synthetic.png" alt="Synthetic form generation pipeline"><figcaption>Synthetic form generation pipeline.</figcaption></figure>
+
+  <h3>RMHF2026: real handwritten forms</h3>
+  <div class="two">
+    <div>
+      <p>Completed by participants in their natural handwriting and captured with mobile phones under varied backgrounds, angles and lighting, plus flatbed-scanned versions. Language experts annotated key&ndash;value pairs.</p>
+      <table class="tbl small">
+        <thead><tr><th>Language</th><th>Forms</th><th>Templates</th><th>Participants</th></tr></thead>
+        <tbody>
+          <tr><td>English</td><td>6,000</td><td>50</td><td>250</td></tr>
+          <tr><td>Bengali</td><td>3,000</td><td>30</td><td>150</td></tr>
+          <tr><td>Hindi</td><td>2,500</td><td>20</td><td>100</td></tr>
+          <tr class="total"><td>Total</td><td>11,500</td><td>100</td><td>500</td></tr>
+        </tbody>
+      </table>
+      <p class="note">400 original forms per language are held out as the test set, split at both template and writer level.</p>
+    </div>
+    <figure class="card fig"><img src="assets/fig/fig4_real_forms.png" alt="Representative real handwritten forms"><figcaption>Representative mobile-captured and scanned forms.</figcaption></figure>
+  </div>
+</section>
+
+<section id="results" class="wrap">
+  <h2>Results</h2>
+  <p>Comparison on the held-out real handwritten test set. K-/V- are printed-key and handwritten-value error rates (lower is better); Pair F1 measures key&ndash;value association and EM requires every field in a form to be correct. <b>Bold</b> = best, <u>underline</u> = second best.</p>
+  <div class="tabs" id="tbl-tabs" role="tablist">
+    <button class="tab active" data-lang="english">English</button>
+    <button class="tab" data-lang="bengali">Bengali</button>
+    <button class="tab" data-lang="hindi">Hindi</button>
+  </div>
+  <div class="scroll"><table class="tbl" id="main-table"></table></div>
+
+  <div class="two gap">
+    <div>
+      <h3>Ablation: training strategy</h3>
+      <div class="scroll"><table class="tbl small" id="abl-table"></table></div>
+      <p class="note">A: real only &middot; B: synthetic KV + real &middot; C: synthetic KV + anchors, no real adaptation &middot; D: full StructForm.</p>
+    </div>
+    <div>
+      <h3>Flatbed scan vs mobile capture (Pair F1)</h3>
+      <div class="scroll"><table class="tbl small" id="cap-table"></table></div>
+      <h3>Semantic anchor quality (held-out synthetic)</h3>
+      <div class="scroll"><table class="tbl small" id="anchor-table"></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="qualitative" class="wrap">
+  <h2>Qualitative results</h2>
+  <p>Real handwritten forms, with the output of StructForm and baseline systems side by side. Red marks recognition errors. The slideshow plays continuously; hover or tap to pause, click an image to enlarge.</p>
+  <div class="tabs" id="q-tabs">
+    <button class="tab active" data-lang="all">All</button>
+    <button class="tab" data-lang="english">English</button>
+    <button class="tab" data-lang="bengali">Bengali</button>
+    <button class="tab" data-lang="hindi">Hindi</button>
+  </div>
+  <div class="carousel" id="carousel" aria-roledescription="carousel">
+    <button class="arrow prev" id="c-prev" aria-label="Previous">&#8249;</button>
+    <div class="stage" id="c-stage"><img id="c-img" alt=""></div>
+    <button class="arrow next" id="c-next" aria-label="Next">&#8250;</button>
+    <div class="bar"><i id="c-progress"></i></div>
+    <div class="meta"><span id="c-label"></span><button id="c-play" class="mini" aria-label="Pause">Pause</button></div>
+    <div class="dots" id="c-dots"></div>
+  </div>
+</section>
+
+<section id="resources" class="wrap">
+  <h2>Resources</h2>
+  <div class="res">
+    <a class="card res-item" data-link="models" href="#"><span class="hf big">&#129303;</span><b>Models</b><span>Language-specific LoRA adapters (English, Bengali, Hindi) on Hugging Face.</span><em>Coming soon</em></a>
+    <a class="card res-item" data-link="dataset" href="#"><b>RMHF2026 &amp; SMHF2026</b><span>Real handwritten forms with key&ndash;value annotations, and the synthetic corpus.</span><em>Coming soon</em></a>
+    <a class="card res-item" data-link="code" href="#"><b>Code</b><span>Synthetic form generation, training and inference.</span><em id="code-state">Coming soon</em></a>
+    <a class="card res-item" data-link="supp" href="#"><b>Supplementary</b><span>Additional qualitative comparisons and analysis.</span><em id="supp-state">Download</em></a>
+  </div>
+</section>
+
+<section id="cite" class="wrap">
+  <h2>Citation</h2>
+  <p>Final proceedings details will be updated once available.</p>
+  <div class="code"><button class="copy" id="copy">Copy</button><pre id="bibtex">@inproceedings{bhattacharyya2026structform,
+  title     = {StructForm: Synthetic Structural Supervision for Multilingual Handwritten Form Digitization},
+  author    = {Bhattacharyya, Shaon and Mondal, Ajoy and Jawahar, C. V.},
+  booktitle = {Proceedings of the 17th Indian Conference on Computer Vision, Graphics and Image Processing (ICVGIP)},
+  year      = {2026},
+  address   = {Kolkata, India}
+}</pre></div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">StructForm project page &middot; ICVGIP 2026 &middot; CVIT, IIIT Hyderabad</div>
+</footer>
+
+<div class="modal" id="modal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h3 id="m-title">Coming soon</h3>
+    <p id="m-text"></p>
+    <button class="btn" id="m-close">Got it</button>
+  </div>
+</div>
+<div class="modal lightbox" id="lightbox" hidden><img alt=""></div>
+
+<script src="assets/main.js"></script>
+</body>
+</html>
